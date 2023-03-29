@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+
+<link href="/css/reset.css" th:href="@{/css/reset.css}" rel="stylesheet" />
+<link href="/css/style.css" th:href="@{/css/style.css}" rel="stylesheet" />
+
+<script src="http://code.jquery.com/jquery-3.4.1.min.js"></script>
+
+<title>ジョークマート</title>
+</head>
+<body>
+
+	<!-- ヘッダーの表示はフラグメントにて処理 -->
+	<header th:insert="fragments/page_header::pageHeader"></header>
+
+	<main>
+
+		<!-- 商品検索の部分カテゴリと商品名入力する箇所 -->
+		<div class="container">
+			<form name="searchForm" action="/plum/searchItem">
+
+				<!-- mst_categoryテーブルより内容取得 -->
+
+				カテゴリ <select name="category" id="category">
+					<option value="0"></option>
+					<option th:each=" category: ${categories}"
+						th:selected="${selected == category.id}" th:value="${category.id}"
+						th:text="${category.categoryName}"></option>
+
+				</select> 商品名（部分一致） <input type="text" name="keywords" th:value="${keywords}" />
+				<button type="submit">検索</button>
+			</form>
+
+			<div class="noData"
+				th:if="${products == null || products.size() == 0}">
+				<p class="info">検索結果はありません。</p>
+			</div>
+
+			<!-- 商品の表示部分
+　　画像、商品名、価格、個数入力、カート追加ボタンを作成
+　　商品画像、商品名は<a>タグ→plum/productに飛ばす
+		 カート追加押下時以下チェック
+		 	・個数０の場合にアラート表示
+		 	・個数が1個以上の場合はカート機能に記載の処理を実行-->
+
+			<table class="top" th:if="${products != null && products.size() > 0}">
+				<tr>
+					<th>画像</th>
+					<th>商品名</th>
+					<th>価格(円)</th>
+					<th>個数</th>
+					<th>カート</th>
+				</tr>
+
+				<!-- DBの取得→MstProductから -->
+				<!-- 画像表示 -->
+				<tr th:each="product : ${products}">
+					<td class="image"><a href="/plum/product/"
+						th:href="@{/plum/product/{id}(id=${product.id})}"> <img
+							class="itemImage" th:src="${product.imageFullPath}" />
+					</a></td>
+
+					<!-- 商品名表示 -->
+					<td><a href="/plum/product/"
+						th:href="@{/plum/product/{id}(id=${product.id})}"> <label
+							th:text="${product.productName}"></label>
+					</a></td>
+
+					<!-- 価格表示 -->
+					<td class="number" th:text="${product.price}" />
+
+					<!-- 個数入力処理 -->
+					<td class="componentTd"><input type="number" id="productCount"
+						class="count number" name="productCount" value="0" min="0"
+						step="1" /> <input type="hidden" id="productId" name="productId"
+						th:value="${product.id}" /></td>
+
+					<!-- カートに入れるボタン -->
+					<td class="componentTd">
+						<button class="cartBtn">追加</button>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</main>
+
+	<script>
+	$(() => {
+		$('.cartBtn').on('click', (event) => {
+			let tr = $(event.target).parent().parent();
+			let productId = $(tr).find('#productId').val();
+			let productCount = $(tr).find('#productCount').val();
+			addCart(productId, productCount);
+		});	
+	});
+
+</script>
+
+</body>
+</html>
